@@ -6,6 +6,7 @@ public class Hands {
     ArrayList<Card> hand;
     int money;
     int bet;
+    int insuranceBet;
     boolean firstHandPlayed;
     boolean secondHandPlayed;
 
