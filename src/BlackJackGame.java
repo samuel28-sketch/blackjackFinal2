@@ -158,10 +158,10 @@ public class BlackJackGame implements Runnable, KeyListener {
 
             if (fc.progress >= 1.0f) {
                 fc.done = true;
-                fc.target.hand.add(fc.card);
+                fc.target.getHand().add(fc.card);
                 printHand(fc.target);
-                if (fc.target.player) {
-                    if (fc.target.handValue > 21) {
+                if (fc.target.isPlayer()) {
+                    if (fc.target.getHandValue() > 21) {
 
                         if (playerHands.size()>1) {
                             if (handIndex > 0) {
@@ -175,10 +175,10 @@ public class BlackJackGame implements Runnable, KeyListener {
                             startEndRound();
                         }
 
-                    } else if (fc.target.handValue == 21 && fc.target.hand.size() == 2) {
+                    } else if (fc.target.getHandValue() == 21 && fc.target.getHand().size() == 2) {
                         blackjack = true;
                         startBlackjackCelebration();
-                    } else if (fc.target.handValue == 21) {
+                    } else if (fc.target.getHandValue() == 21) {
                         if (handIndex > 0) {
                             handIndex--;
                         } else {
@@ -192,11 +192,11 @@ public class BlackJackGame implements Runnable, KeyListener {
 
         if (dealerThinking && flyingCards.isEmpty()) {
             if (System.currentTimeMillis() - dealerDrawTime >= DEALER_DELAY_MS) {
-                if (!playerHands.get(handIndex).secondHandPlayed) {
+                if (!playerHands.get(handIndex).isSecondHandPlayed()) {
                     draw(dealer);
-                    playerHands.get(handIndex).secondHandPlayed = true;
+                    playerHands.get(handIndex).setSecondHandPlayed(true);
                     dealerDrawTime = System.currentTimeMillis();
-                } else if (dealer.handValue < player.handValue && dealer.handValue <= 21) {
+                } else if (dealer.getHandValue() < player.getHandValue() && dealer.getHandValue() <= 21) {
                     draw(dealer);
                     dealerDrawTime = System.currentTimeMillis();
                 } else {
@@ -263,7 +263,7 @@ public class BlackJackGame implements Runnable, KeyListener {
         int slotCenterX = 20 + index * slotWidth + slotWidth / 2;
 
         Hands hand = playerHands.get(index);
-        int n = hand.hand.size();
+        int n = hand.getHand().size();
         if (n == 0) {
             return slotCenterX;
         }
@@ -272,16 +272,16 @@ public class BlackJackGame implements Runnable, KeyListener {
     }
 
     private void drawHandAt(Graphics2D g, Hands hand, int startX, int yPos) {
-        int n = hand.hand.size();
+        int n = hand.getHand().size();
         if (n == 0) return;
         for (int i = 0; i < n; i++) {
             int cx = startX + i * 95;
-            drawCard(g, hand.hand.get(i), cx, yPos);
+            drawCard(g, hand.getHand().get(i), cx, yPos);
         }
     }
 
     private void drawActiveHandBorder(Graphics2D g, Hands hand, int startX, int yPos) {
-        int n = hand.hand.size();
+        int n = hand.getHand().size();
         if (n == 0) return;
         int totalWidth = n * 80 + (n - 1) * 15;
         g.setColor(new Color(255, 215, 0));
@@ -326,7 +326,7 @@ public class BlackJackGame implements Runnable, KeyListener {
 
         g.setFont(new Font("Segoe UI", Font.ITALIC, 22));
         g.setColor(new Color(255, 255, 200));
-        String sub = "+$" + (int)(playerHands.get(handIndex).bet * 1.5) + "  Natural 21!";
+        String sub = "+$" + (int)(playerHands.get(handIndex).getBet() * 1.5) + "  Natural 21!";
         fm = g.getFontMetrics();
         g.drawString(sub, WIDTH / 2 - fm.stringWidth(sub) / 2, HEIGHT / 2 + 55);
     }
@@ -355,7 +355,7 @@ public class BlackJackGame implements Runnable, KeyListener {
     }
 
     private void drawHand(Graphics2D g, Hands hand, int yPos, boolean hideFirst) {
-        int n = hand.hand.size();
+        int n = hand.getHand().size();
         if (n == 0) return;
         int totalWidth = n * 80 + (n - 1) * 15;
         int startX = (WIDTH - totalWidth) / 2;
@@ -364,7 +364,7 @@ public class BlackJackGame implements Runnable, KeyListener {
             if (i == 0 && hideFirst) {
                 drawCardBack(g, cx, yPos);
             } else {
-                drawCard(g, hand.hand.get(i), cx, yPos);
+                drawCard(g, hand.getHand().get(i), cx, yPos);
             }
         }
     }
@@ -376,10 +376,10 @@ public class BlackJackGame implements Runnable, KeyListener {
         g.setColor(new Color(180, 180, 180));
         g.setStroke(new BasicStroke(1.5f));
         g.drawRoundRect(x, y, W, H, ARC, ARC);
-        boolean red = (card.suit == 1 || card.suit == 3);
+        boolean red = (card.getSuit() == 1 || card.getSuit() == 3);
         g.setColor(red ? new Color(200, 20, 20) : Color.BLACK);
-        String rank = toRank(card.value);
-        String sym = toSuit(card.suit);
+        String rank = toRank(card.getValue());
+        String sym = toSuit(card.getSuit());
         g.setFont(new Font("Segoe UI", Font.BOLD, 14));
         g.drawString(rank, x + 6, y + 18);
         g.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -417,10 +417,10 @@ public class BlackJackGame implements Runnable, KeyListener {
 
         g.setColor(Color.WHITE);
         g.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        g.drawString("Money: $" + player.money, 20, hudY + 25);
+        g.drawString("Money: $" + player.getMoney(), 20, hudY + 25);
 
-        String dealerStr = "Dealer: " + dealer.handValue;
-        String playerStr = "Player: " + player.handValue;
+        String dealerStr = "Dealer: " + dealer.getHandValue();
+        String playerStr = "Player: " + player.getHandValue();
         String center = dealerStr + "   |   " + playerStr;
         FontMetrics fm = g.getFontMetrics();
         g.drawString(center, (WIDTH - fm.stringWidth(center)) / 2, hudY + 25);
@@ -428,7 +428,7 @@ public class BlackJackGame implements Runnable, KeyListener {
         String instr;
         if (!firstHandPlayed) {
             instr = "E = Deal   R = +Bet   F = -Bet";
-        } else if (firstHandPlayed && !playerHands.get(handIndex).secondHandPlayed) {
+        } else if (firstHandPlayed && !playerHands.get(handIndex).isSecondHandPlayed()) {
             instr = "E = Hit   R = Stand";
         } else {
             instr = "Press E to Deal";
@@ -440,10 +440,10 @@ public class BlackJackGame implements Runnable, KeyListener {
         g.setFont(new Font("Segoe UI", Font.BOLD, 18));
         fm = g.getFontMetrics();
         if (!insuranceBetting) {
-            betStr = "Bet: $" + player.bet;
+            betStr = "Bet: $" + player.getBet();
         }
         else {
-            betStr = "Insurance Bet: $" + player.insuranceBet;
+            betStr = "Insurance Bet: $" + player.getInsuranceBet();
         }
         g.setColor(new Color(255, 215, 0));
         g.drawString(betStr, (WIDTH - fm.stringWidth(betStr)) / 2, hudY + 55);
@@ -484,8 +484,8 @@ public class BlackJackGame implements Runnable, KeyListener {
             moveThings();
             render();
             pause(10);
-            if (player.money<=0){
-                player.money=2500;
+            if (player.getMoney() <=0){
+                player.setMoney(2500);
                 deck.addAll(discard);
                 discard.clear();
             }
@@ -539,14 +539,15 @@ public class BlackJackGame implements Runnable, KeyListener {
             if (firstHandPlayed && !dealerThinking && !roundEnding && flyingCards.isEmpty()&&!insuranceBetting) {
                 draw(playerHands.get(handIndex));
                 if (handIndex>0) {
-                    if (playerHands.get(handIndex).firstHandPlayed) {
-                        playerHands.get(handIndex).secondHandPlayed = true;
+                    if (playerHands.get(handIndex).isFirstHandPlayed()) {
+                        playerHands.get(handIndex).setSecondHandPlayed(true);
                     }
-                    playerHands.get(handIndex).firstHandPlayed = true;
+                    playerHands.get(handIndex).setFirstHandPlayed(true);
                 }
-                else {playerHands.get(handIndex).secondHandPlayed=true;}
+                else {
+                    playerHands.get(handIndex).setSecondHandPlayed(true);}
                // else if (){}
-            } else if (!firstHandPlayed && player.bet > 0) {
+            } else if (!firstHandPlayed && player.getBet() > 0) {
                 draw(dealer);
                 draw(player);
                 draw(player);
@@ -554,32 +555,35 @@ public class BlackJackGame implements Runnable, KeyListener {
             }
         }
 //started adding hand.second hand boolean below
-        if (keycode == KeyEvent.VK_Q &&firstHandPlayed&&!playerHands.get(handIndex).secondHandPlayed && player.bet<=(player.money/2)){
-            player.bet*=2;
+        if (keycode == KeyEvent.VK_Q &&firstHandPlayed&&!playerHands.get(handIndex).isSecondHandPlayed() && player.getBet() <=(player.getMoney() /2)){
+            player.multiplyBet(2);
             draw(playerHands.get(handIndex));
-            if (handIndex==0) {
+            if (playerHands.get(handIndex).getHandValue() >21){
+                startEndRound(); //STILL DIDNT FIX IT
+            }
+            else if (handIndex==0) {
                 startDealerAI();
             }
         }
-        if (keycode == KeyEvent.VK_A&&firstHandPlayed&&!playerHands.get(handIndex).secondHandPlayed && player.bet<(player.money/2)&&((playerHands.get(handIndex).hand.getLast().value==playerHands.get(handIndex).hand.getFirst().value)||(playerHands.get(handIndex).hand.getLast().value>=10&&playerHands.get(handIndex).hand.getFirst().value>=10))){
+        if (keycode == KeyEvent.VK_A&&firstHandPlayed&&!playerHands.get(handIndex).isSecondHandPlayed() && player.getBet() <(player.getMoney() /2)&&((playerHands.get(handIndex).getHand().getLast().getValue()== playerHands.get(handIndex).getHand().getFirst().getValue())||(playerHands.get(handIndex).getHand().getLast().getValue()>=10&& playerHands.get(handIndex).getHand().getFirst().getValue()>=10))){
             Hands splitHand = new Hands(true);
-            splitHand.hand.add(playerHands.get(handIndex).hand.getLast());
-            playerHands.get(handIndex).hand.remove(player.hand.getLast());
+            splitHand.getHand().add(playerHands.get(handIndex).getHand().getLast());
+            playerHands.get(handIndex).getHand().remove(player.getHand().getLast());
             playerHands.add(splitHand);
             handIndex++;
         }
         if (keycode == KeyEvent.VK_C){
-            System.out.println(playerHands.get(handIndex).secondHandPlayed);
-            System.out.println(playerHands.get(handIndex).firstHandPlayed);
+            System.out.println(playerHands.get(handIndex).isSecondHandPlayed());
+            System.out.println(playerHands.get(handIndex).isFirstHandPlayed());
             //System.out.println(playerHands.get(handIndex).hand.getLast());
             //System.out.println(playerHands.get(handIndex).hand.getFirst());
 
         }
 
-        if (keycode==KeyEvent.VK_T&&firstHandPlayed&&!secondHandPlayed&&dealer.hand.getFirst().value==1){
+        if (keycode==KeyEvent.VK_T&&firstHandPlayed&&!secondHandPlayed&& dealer.getHand().getFirst().getValue()==1){
             if (insuranceBetting){
                 insuranceBetting=false;
-                player.money-=player.insuranceBet;
+                player.addMoney(-player.getInsuranceBet());
             }
             else{
                 insuranceBetting = true;
@@ -588,15 +592,15 @@ public class BlackJackGame implements Runnable, KeyListener {
             //System.out.println("INSURANCE ACTIVE");
         }
 
-        if (keycode == KeyEvent.VK_R && player.bet < player.money && (!firstHandPlayed||(insuranceBetting&&player.insuranceBet<(player.bet/2)))) {
-            player.bet += 100;
-            if (insurance){player.insuranceBet+=100;}
+        if (keycode == KeyEvent.VK_R && player.getBet() < player.getMoney() && (!firstHandPlayed||(insuranceBetting&& player.getInsuranceBet() <(player.getBet() /2)))) {
+            player.addBet(100);
+            if (insurance){player.addInsuranceBet(100);}
         }
 
-        if (keycode == KeyEvent.VK_F && player.bet > 100 && (!firstHandPlayed||insuranceBetting)) {
-            player.bet -= 100;
+        if (keycode == KeyEvent.VK_F && player.getBet() > 100 && (!firstHandPlayed||insuranceBetting)) {
+            player.addBet(-100);
             if (insurance){
-                player.insuranceBet -=100;
+                player.addInsuranceBet(-100);
             }
         }
 
@@ -623,36 +627,36 @@ public class BlackJackGame implements Runnable, KeyListener {
         deck.remove(card);
         discard.add(card);
 
-        int futureN = hand.hand.size() + 1;
+        int futureN = hand.getHand().size() + 1;
         int totalWidth = futureN * 80 + (futureN - 1) * 15;
 
         int startXPos;
-        if (hand.player) {
+        if (hand.isPlayer()) {
             int handIndexInList = playerHands.indexOf(hand);
             startXPos = getHandSlotX(handIndexInList);
         } else {
             startXPos = (WIDTH - totalWidth) / 2;
         }
 
-        int endX = startXPos + hand.hand.size() * 95;
-        int endY = hand.player ? 400 : 80;
+        int endX = startXPos + hand.getHand().size() * 95;
+        int endY = hand.isPlayer() ? 400 : 80;
 
         FlyingCard fc = new FlyingCard(card, hand, DECK_X, DECK_Y, endX, endY);
         flyingCards.add(fc);
     }
 
     public void updateHand(Hands hand) {
-        hand.handValue = 0;
-        for (Card card : hand.hand) {
-            if (card.value > 1 && card.value <= 10) {
-                hand.handValue += card.value;
-            } else if (card.value >= 11 && card.value <= 13) {
-                hand.handValue += 10;
-            } else if (card.value == 1) {
-                if (hand.handValue < 12) {
-                    hand.handValue += 11;
+        hand.setHandValue(0);
+        for (Card card : hand.getHand()) {
+            if (card.getValue() > 1 && card.getValue() <= 10) {
+                hand.addHandValue(card.getValue());
+            } else if (card.getValue() >= 11 && card.getValue() <= 13) {
+                hand.addHandValue(10);
+            } else if (card.getValue() == 1) {
+                if (hand.getHandValue() < 12) {
+                    hand.addHandValue(11);
                 } else {
-                    hand.handValue += 1;
+                    hand.addHandValue(1);
                 }
             }
         }
@@ -660,53 +664,53 @@ public class BlackJackGame implements Runnable, KeyListener {
 
     public void printHand(Hands hand) {
         String value = "";
-        hand.handValue = 0;
+        hand.setHandValue(0);
         System.out.println();
-        if (hand.player) {
+        if (hand.isPlayer()) {
             System.out.println("player's hand:");
         } else {
             System.out.println("dealer's hand:");
         }
-        for (Card  card : hand.hand) {
-            if (card.value > 1 && card.value <= 10) {
-                value += card.value + " of";
-                hand.handValue += card.value;
-            } else if (card.value == 11) {
+        for (Card  card : hand.getHand()) {
+            if (card.getValue() > 1 && card.getValue() <= 10) {
+                value += card.getValue() + " of";
+                hand.addHandValue(card.getValue());
+            } else if (card.getValue() == 11) {
                 value += "queen of";
-                hand.handValue += 10;
-            } else if (card.value == 12) {
+                hand.addHandValue(10);
+            } else if (card.getValue() == 12) {
                 value += "king of";
-                hand.handValue += 10;
-            } else if (card.value == 13) {
+                hand.addHandValue(10);
+            } else if (card.getValue() == 13) {
                 value += "jack of";
-                hand.handValue += 10;
-            } else if (card.value == 1) {
+                hand.addHandValue(10);
+            } else if (card.getValue() == 1) {
                 value += "ace of";
                 aceInHand++;
             }
 
-            if (card.suit == 1) {
+            if (card.getSuit() == 1) {
                 value += " diamonds";
-            } else if (card.suit == 2) {
+            } else if (card.getSuit() == 2) {
                 value += " spades";
-            } else if (card.suit == 3) {
+            } else if (card.getSuit() == 3) {
                 value += " hearts";
-            } else if (card.suit == 4) {
+            } else if (card.getSuit() == 4) {
                 value += " clubs";
             }
             System.out.println(value);
             value = "";
         }
 for (int i=0; i<aceInHand;i++) {
-    if (hand.handValue < 12) {
-        hand.handValue += 11;
-    } else if (hand.handValue >= 10) {
-        hand.handValue += 1;
+    if (hand.getHandValue() < 12) {
+        hand.addHandValue(11);
+    } else if (hand.getHandValue() >= 10) {
+        hand.addHandValue(1);
     }
 }
 aceInHand =0;
 
-        System.out.println(hand.handValue);
+        System.out.println(hand.getHandValue());
     }
 
     public void startDealerAI() {
@@ -722,46 +726,46 @@ aceInHand =0;
     public void endRound() {
 
         for (Hands player : playerHands) {
-            if (player.handValue > 21) {
-                this.player.money -= player.bet;
-            } else if (dealer.handValue > 21) {
-                this.player.money += player.bet;
-            } else if (player.handValue == 21) {
-                if (player.hand.size() == 2 && !(dealer.hand.size() == 2)) {
-                    this.player.money += (int) (player.bet * 1.5);
-                } else if (player.handValue != dealer.handValue) {
-                    this.player.money += player.bet;
+            if (player.getHandValue() > 21) {
+                this.player.addMoney( -player.getBet());
+            } else if (dealer.getHandValue() > 21) {
+                this.player.addMoney(player.getBet());
+            } else if (player.getHandValue() == 21) {
+                if (player.getHand().size() == 2 && !(dealer.getHand().size() == 2)) {
+                    this.player.addMoney( (int)(player.getBet() * 1.5) );
+                } else if (player.getHandValue() != dealer.getHandValue()) {
+                    this.player.addMoney(player.getBet());
                 }
-            } else if (player.handValue < dealer.handValue) {
-                this.player.money -= player.bet;
-            } else if (player.handValue > dealer.handValue) {
-                this.player.money += player.bet;
+            } else if (player.getHandValue() < dealer.getHandValue()) {
+                this.player.addMoney(-player.getBet());
+            } else if (player.getHandValue() > dealer.getHandValue()) {
+                this.player.addMoney(player.getBet());
             }
 
             if (insurance){
-                if (dealer.hand.size()==2&&dealer.handValue==21){
-                    player.money+= player.insuranceBet;
+                if (dealer.getHand().size()==2&& dealer.getHandValue() ==21){
+                    player.addMoney(player.getInsuranceBet());
                 }
                 insurance = false;
             }
         }
 
-        if (player.money>highScore){
-            highScore= player.money;
+        if (player.getMoney() >highScore){
+            highScore= player.getMoney();
         }
 
-        player.bet = 0;
+        player.setBet(0);
         for (Hands player:playerHands) {
             player.clearHand();
         }
 //need to fix splits, need to add split cards to discard, need to fix it so that you cant split after drawing, and double prob has the same bug
         dealer.clearHand();
-        System.out.println(player.money);
+        System.out.println(player.getMoney());
         playerHands.clear();
         playerHands.add(player);
         handIndex = 0;
         firstHandPlayed = false;
-        playerHands.get(handIndex).secondHandPlayed = false;
+        playerHands.get(handIndex).setSecondHandPlayed(false);
         blackjack = false;
     }
 }
